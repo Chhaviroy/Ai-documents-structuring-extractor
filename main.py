@@ -74,5 +74,5 @@ def cleanup():
     if os.path.exists("output.xlsx"):
         os.remove("output.xlsx")
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     uvicorn.run(app)
