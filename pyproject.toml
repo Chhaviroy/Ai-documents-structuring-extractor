@@ -1,0 +1,11 @@
+[project]
+name = "fastapi-render-tutorial"
+version = "0.1.0"
+description = "A simple FastAPI tutorial for deploying to Render"
+requires-python = ">=3.9"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "sqlalchemy>=2.0.0",
+    "psycopg2-binary>=2.9.0",
+]
