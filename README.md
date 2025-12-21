@@ -6,6 +6,11 @@ The system intelligently extracts **key:value pairs**, adds **contextual comment
 This implementation fully meets the requirements of the AI Document Structuring Assignment.
 
 ---
+
+## Live Demo
+
+Check out the live AI PDF → Excel converter here: [Live Demo](https://ai-documents-structuring-extractor-2.onrender.com)
+
 ## HOW TO USE
 ## Steps to run the notebook
 
