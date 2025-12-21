@@ -7,6 +7,9 @@ import uvicorn
 import google.generativeai as genai
 from dotenv import load_dotenv
 import json
+from fastapi.templating import Jinja2Templates
+from fastapi.requests import Request
+import re
 
 # Load environment variables
 load_dotenv('.env')
@@ -18,6 +21,14 @@ if not api_key:
 genai.configure(api_key=api_key)
 
 app = FastAPI()
+templates = Jinja2Templates(directory="templates")
+
+@app.get("/")
+def home(request: Request):
+    return templates.TemplateResponse(
+        "index.html",
+        {"request": request}
+    )
 
 @app.post("/convert-to-excel/")
 async def convert_to_excel(file: UploadFile = File(...)):
@@ -25,15 +36,15 @@ async def convert_to_excel(file: UploadFile = File(...)):
     if file.content_type != "application/pdf":
         raise HTTPException(status_code=400, detail="Only .pdf files are allowed.")
 
-    # Process the PDF file
+    # Read PDF
     content = await file.read()
     with open("temp.pdf", "wb") as temp_file:
         temp_file.write(content)
     reader = PdfReader("temp.pdf")
-    text_data = "\n".join([page.extract_text() for page in reader.pages])
+    text_data = "\n".join([page.extract_text() or "" for page in reader.pages])
     os.remove("temp.pdf")
 
-    # Define the prompt for the LLM
+    # Prepare prompt for AI
     prompt = f"""
     Extract ALL information from the following text.
 
@@ -44,35 +55,47 @@ async def convert_to_excel(file: UploadFile = File(...)):
     - For each key, add a comment containing related context from the text.
     - Output ONLY valid JSON list of objects, format:
       [
-        {{"key": "...", "value": "...", "comments": "..."}},
-        ...
+        {{"key": "...", "value": "...", "comments": "..."}} 
       ]
 
     Text:
     {text_data}
     """
 
-    # Generate content using the LLM
+    # Call the LLM
     model = genai.GenerativeModel(model_name="gemini-2.5-flash")
     response = model.generate_content(prompt)
 
-    # Parse the response
-    clean_json = response.text.strip().replace("json", "").replace("", "")
-    data = json.loads(clean_json)
+    # Safely extract JSON using regex
+    match = re.search(r"\[.*\]", response.text, re.DOTALL)
+    if not match:
+        raise HTTPException(status_code=500, detail="AI did not return valid JSON.")
 
-    # Convert the extracted data to a DataFrame
+    clean_json = match.group(0)
+
+    try:
+        data = json.loads(clean_json)
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=500, detail="Failed to parse JSON from AI response.")
+
+    # Convert to DataFrame
     df = pd.DataFrame(data)
     output_file = "output.xlsx"
     df.to_excel(output_file, index=False)
 
-    # Return the Excel file as a response
-    return FileResponse(output_file, media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", filename=output_file)
+    return FileResponse(
+        output_file,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        filename=output_file
+    )
 
-# Cleanup: Remove the generated Excel file after the response
+# Cleanup Excel on shutdown
 @app.on_event("shutdown")
 def cleanup():
     if os.path.exists("output.xlsx"):
         os.remove("output.xlsx")
 
-if _name_ == "_main_":
-    uvicorn.run(app)
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+
+print("API KEY LOADED:", api_key[:6])
