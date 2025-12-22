@@ -92,6 +92,6 @@ Your Excel output will look like this:
 
 * Pandas
 
-* pdfplumber
+* Pdfplumber
 
 
