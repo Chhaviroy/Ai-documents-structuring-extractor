@@ -9,7 +9,8 @@ This implementation fully meets the requirements of the AI Document Structuring 
 
 ## Live Demo
 
-Check out the live AI PDF → Excel converter here: [Live Demo](https://ai-documents-structuring-extractor-2.onrender.com)
+Check out the live AI PDF → Excel converter here: [Live Demo](https://ai-documents-structuring-extractor-2.onrender.com) 
+(Please wait for few seconds as render may take some time to revoke the service)
 
 ## HOW TO USE
 ## Steps to run the notebook
