@@ -3,7 +3,7 @@
 This project automatically converts **unstructured PDF documents** into a fully structured **Excel file** using a Large Language Model (LLM).  
 The system intelligently extracts **key:value pairs**, adds **contextual comments**, and preserves the **exact original wording** from the PDF while organizing everything into a clean table.
 
-This implementation fully meets the requirements of the AI Document Structuring Assignment.
+
 
 ---
 
